@@ -1,0 +1,11 @@
+Currently in the following files, the following options will be available:
+
+preprocess_data.json
+	"biascorrection": true/false,
+    "cropping": true/false,
+	"isotropic": true/false,
+	"vxspacing": "median", "mean", "min", "max",
+	"normalization": true/false,
+	"normalizationmethod": "z-score", "min-max", "mean", "i-scaling", "dec-scaling", "tanH", "hist"
+	"intensityclipping": [0.1, 0.9], (Should be in a range between 0 - 1)
+	"Augmentation": true

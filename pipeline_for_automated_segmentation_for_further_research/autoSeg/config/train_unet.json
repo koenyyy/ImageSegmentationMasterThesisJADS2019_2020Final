@@ -1,0 +1,22 @@
+{
+	"validationsetpct": 0.30,
+	"testsetpct": 0.00,
+	"modelsource": "setup_unet",
+	"niftisource": "/media/data/kderaad/LipoData",
+	"dataset": ["LiTSDataset", "LiTSDataset"],
+	"sequences": ["t1"],
+	"shuffle": true,
+	"seg_to_use": [true, true, true],
+
+	"variableparams": {
+		"epochs": [5],
+		"numworkers": [0],
+		"batchsize": [1],
+		"loss": ["dice"],
+		"lossweights": [[0.001, 1.000, 1.0000]],
+		"learningrate": [0.01],
+		"patchsize": [
+			[128, 128, 16]
+		]
+	}
+}

@@ -1,0 +1,18 @@
+{
+	"dataset": ["LiTSDataset", "LiTSDataset"],
+	"biascorrection": false,
+	"cropping": false,
+	"resampling": true,
+	"default_pixel_value": -1000.0,
+	"isotropic": true,
+	"vxspacing": "one",
+	"vxspacingfactor": 4,
+	"normalization": false,
+	"masked": false,
+	"normalizationmethod": "z-score",
+	"lirHir": [1,99],
+	"intensityclipping": false,
+	"intensityclippingvalues": [0.5, 99.5],
+	"Augmentation": false,
+	"resample_without_reference": true
+}

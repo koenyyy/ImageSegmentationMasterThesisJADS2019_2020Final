@@ -1,0 +1,29 @@
+{
+    "jobs": {
+		"preprocess_unet": {
+			"dependencies": [],
+			"type": "preprocess",
+			"configfile": "preprocess_data.json"
+		},
+		"setup_unet": {
+			"dependencies": ["preprocess_unet"],
+			"type": "setup",
+			"configfile": "setup_unet.json"
+		},
+		"train_unet": {
+			"dependencies": ["setup_unet"],
+			"type": "train",
+			"configfile": "train_unet.json"
+		},
+		"eval_nifti": {
+			"dependencies": ["train_unet"],
+			"type": "eval",
+			"configfile": "eval_unet.json"
+		}
+	},
+	"execution": [ ["setup_unet",
+			"train_unet",
+			"eval_nifti"]
+	]
+
+}

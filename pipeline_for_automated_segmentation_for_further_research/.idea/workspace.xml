@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="5352d64b-71dd-4555-9c86-304049a6b1fc" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/autoSeg/data_loading/LiTSDataset.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/thesis_structured.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/thesis_structured.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/autoSeg/code_test_files/test_run_all.py" beforeDir="false" afterPath="$PROJECT_DIR$/autoSeg/code_test_files/test_run_all.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/autoSeg/code_test_files/test_run_evaluator.py" beforeDir="false" afterPath="$PROJECT_DIR$/autoSeg/code_test_files/test_run_evaluator.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/autoSeg/code_test_files/test_run_feature_extractor.py" beforeDir="false" afterPath="$PROJECT_DIR$/autoSeg/code_test_files/test_run_feature_extractor.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/autoSeg/config/eval_unet.json" beforeDir="false" afterPath="$PROJECT_DIR$/autoSeg/config/eval_unet.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/autoSeg/config/preprocess_data.json" beforeDir="false" afterPath="$PROJECT_DIR$/autoSeg/config/preprocess_data.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/autoSeg/config/setup_unet.json" beforeDir="false" afterPath="$PROJECT_DIR$/autoSeg/config/setup_unet.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/autoSeg/config/train_unet.json" beforeDir="false" afterPath="$PROJECT_DIR$/autoSeg/config/train_unet.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/autoSeg/data_loading/LipoDataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/autoSeg/data_loading/LipoDataset.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/autoSeg/executePipeline.py" beforeDir="false" afterPath="$PROJECT_DIR$/autoSeg/executePipeline.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/autoSeg/model_evaluation/evaluate_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/autoSeg/model_evaluation/evaluate_model.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/autoSeg/model_training/train_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/autoSeg/model_training/train_model.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/autoSeg/models/diceloss.py" beforeDir="false" afterPath="$PROJECT_DIR$/autoSeg/models/diceloss.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/autoSeg/preprocessing/Transform.py" beforeDir="false" afterPath="$PROJECT_DIR$/autoSeg/preprocessing/Transform.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/autoSeg/preprocessing/feature_extractor.py" beforeDir="false" afterPath="$PROJECT_DIR$/autoSeg/preprocessing/feature_extractor.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/autoSeg/preprocessing/initial_preprocessing.py" beforeDir="false" afterPath="$PROJECT_DIR$/autoSeg/preprocessing/initial_preprocessing.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/autoSeg/run/manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/autoSeg/run/manager.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/autoSeg/run/run_all.py" beforeDir="false" afterPath="$PROJECT_DIR$/autoSeg/run/run_all.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/autoSeg/utils/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/autoSeg/utils/utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+    </list>
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectId" id="1WeKNqF5VMcFmTDfjIjxUpQTKfM" />
+  <component name="PropertiesComponent">
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_directory_selection" value="$PROJECT_DIR$/autoSeg/data_loading" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/data/input_data" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\s145576\PycharmProjects\thesis_structured\autoSeg\code_test_files" />
+      <recent name="C:\Users\s145576\PycharmProjects\thesis_structured\autoSeg" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\s145576\Documents\GitHub\automaticSegmentationThesis\data\input_data" />
+      <recent name="C:\Users\s145576\PycharmProjects\thesis_structured\data\input_data" />
+      <recent name="C:\Users\s145576\PycharmProjects\thesis_structured\autoSeg\models" />
+      <recent name="C:\Users\s145576\PycharmProjects\thesis_structured\autoSeg\utils" />
+      <recent name="C:\Users\s145576\PycharmProjects\thesis_structured\autoSeg\model_training" />
+    </key>
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="RunManager" selected="Python.test_run_feature_extractor">
+    <configuration name="fiddles_and_scraps" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="thesis_structured" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/autoSeg/code_test_files" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/autoSeg/code_test_files/fiddles_and_scraps.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="n4bc_correct_dataset" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="thesis_structured" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/autoSeg/code_test_files" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/autoSeg/code_test_files/n4bc_correct_dataset.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="test_otsu_thresholder" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="thesis_structured" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/autoSeg/code_test_files" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/autoSeg/code_test_files/test_otsu_thresholder.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="test_run_feature_extractor" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="thesis_structured" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/autoSeg/code_test_files" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/autoSeg/code_test_files/test_run_feature_extractor.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="test_run_initial_preprocessing" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="thesis_structured" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/autoSeg/code_test_files" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/autoSeg/code_test_files/test_run_initial_preprocessing.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="Python.n4bc_correct_dataset" />
+      <item itemvalue="Python.test_otsu_thresholder" />
+      <item itemvalue="Python.test_run_initial_preprocessing" />
+      <item itemvalue="Python.fiddles_and_scraps" />
+      <item itemvalue="Python.test_run_feature_extractor" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.test_run_feature_extractor" />
+        <item itemvalue="Python.test_run_initial_preprocessing" />
+        <item itemvalue="Python.fiddles_and_scraps" />
+        <item itemvalue="Python.test_otsu_thresholder" />
+        <item itemvalue="Python.n4bc_correct_dataset" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="5352d64b-71dd-4555-9c86-304049a6b1fc" name="Default Changelist" comment="" />
+      <created>1579504582214</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1579504582214</updated>
+      <workItem from="1579504606672" duration="1703000" />
+      <workItem from="1580050062142" duration="38000" />
+      <workItem from="1581606061658" duration="5966000" />
+      <workItem from="1582181911028" duration="72000" />
+      <workItem from="1582182017809" duration="73000" />
+      <workItem from="1582182112345" duration="66839000" />
+      <workItem from="1582560925725" duration="2721000" />
+      <workItem from="1583143622192" duration="14759000" />
+      <workItem from="1583244752076" duration="20745000" />
+      <workItem from="1583402818600" duration="20000" />
+      <workItem from="1583410770307" duration="906000" />
+      <workItem from="1583490249705" duration="6223000" />
+      <workItem from="1584355942456" duration="24750000" />
+      <workItem from="1584552530413" duration="2385000" />
+      <workItem from="1584607249640" duration="46859000" />
+      <workItem from="1584957240616" duration="32839000" />
+      <workItem from="1585570274498" duration="132000" />
+      <workItem from="1585646943716" duration="33679000" />
+      <workItem from="1586181486331" duration="6303000" />
+      <workItem from="1586444844924" duration="2354000" />
+      <workItem from="1586510532800" duration="201000" />
+      <workItem from="1586510766378" duration="20377000" />
+      <workItem from="1586776749740" duration="21000" />
+      <workItem from="1586844807073" duration="17559000" />
+      <workItem from="1586875532669" duration="44983000" />
+      <workItem from="1587111721136" duration="7228000" />
+      <workItem from="1587383189513" duration="4239000" />
+      <workItem from="1587541275824" duration="598000" />
+      <workItem from="1587552317453" duration="12414000" />
+      <workItem from="1587715315392" duration="5721000" />
+      <workItem from="1587979120803" duration="600000" />
+      <workItem from="1588058012363" duration="1232000" />
+      <workItem from="1588325297134" duration="4922000" />
+      <workItem from="1588508894456" duration="15000" />
+      <workItem from="1588511873439" duration="2467000" />
+      <workItem from="1588667982710" duration="639000" />
+      <workItem from="1589890538279" duration="1661000" />
+      <workItem from="1590562052748" duration="16315000" />
+      <workItem from="1590666402846" duration="668000" />
+      <workItem from="1590738087653" duration="5531000" />
+      <workItem from="1591083996414" duration="24000" />
+      <workItem from="1592128257918" duration="3871000" />
+      <workItem from="1592152918316" duration="218000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="COLUMN_ORDER" />
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/automaticSegmentationThesis$test_n4bc.coverage" NAME="test_n4bc Coverage Results" MODIFIED="1586950580660" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/autoSeg/code_test_files" />
+    <SUITE FILE_PATH="coverage/thesis_structured$test_run_all.coverage" NAME="test_run_all Coverage Results" MODIFIED="1585900370066" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/autoSeg/code_test_files" />
+    <SUITE FILE_PATH="coverage/thesis_structured$test_run_evaluator.coverage" NAME="test_run_evaluator Coverage Results" MODIFIED="1585900376250" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/autoSeg/code_test_files" />
+    <SUITE FILE_PATH="coverage/thesis_structured$run_evaluator.coverage" NAME="run_evaluator Coverage Results" MODIFIED="1584379027596" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/autoSeg/run" />
+    <SUITE FILE_PATH="coverage/thesis_structured$test_run_feature_extractor.coverage" NAME="test_run_feature_extractor Coverage Results" MODIFIED="1584868770587" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/autoSeg/code_test_files" />
+    <SUITE FILE_PATH="coverage/automaticSegmentationThesis$initial_preprocessing.coverage" NAME="initial_preprocessing Coverage Results" MODIFIED="1586522099515" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/autoSeg/preprocessing" />
+    <SUITE FILE_PATH="coverage/automaticSegmentationThesis$test_LiTS_dataset.coverage" NAME="test_LiTS_dataset Coverage Results" MODIFIED="1586529491100" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/autoSeg/code_test_files" />
+    <SUITE FILE_PATH="coverage/automaticSegmentationThesis$test_otsu_thresholder.coverage" NAME="test_otsu_thresholder Coverage Results" MODIFIED="1587113331100" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/autoSeg/code_test_files" />
+    <SUITE FILE_PATH="coverage/thesis_structured$run_all.coverage" NAME="run_all Coverage Results" MODIFIED="1584865449709" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/autoSeg/run" />
+    <SUITE FILE_PATH="coverage/thesis_structured$test_game.coverage" NAME="test_game Coverage Results" MODIFIED="1585941852563" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/autoSeg/code_test_files" />
+    <SUITE FILE_PATH="coverage/automaticSegmentationThesis$fiddles_and_scraps.coverage" NAME="fiddles_and_scraps Coverage Results" MODIFIED="1588336793219" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/autoSeg/code_test_files" />
+    <SUITE FILE_PATH="coverage/thesis_structured$executePipeline.coverage" NAME="executePipeline Coverage Results" MODIFIED="1584878627859" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/autoSeg" />
+    <SUITE FILE_PATH="coverage/automaticSegmentationThesis$test_run_feature_extractor.coverage" NAME="test_run_feature_extractor Coverage Results" MODIFIED="1590767609438" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/autoSeg/code_test_files" />
+    <SUITE FILE_PATH="coverage/thesis_structured$train_model.coverage" NAME="train_model Coverage Results" MODIFIED="1583325492288" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/autoSeg/model_training" />
+    <SUITE FILE_PATH="coverage/automaticSegmentationThesis$n4bc_correct_dataset.coverage" NAME="n4bc_correct_dataset Coverage Results" MODIFIED="1586954863430" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/autoSeg/code_test_files" />
+    <SUITE FILE_PATH="coverage/thesis_structured$run_experiment.coverage" NAME="run_experiment Coverage Results" MODIFIED="1583245597507" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/autoSeg/run_experiment" />
+    <SUITE FILE_PATH="coverage/automaticSegmentationThesis$test_run_initial_preprocessing.coverage" NAME="test_run_initial_preprocessing Coverage Results" MODIFIED="1590763027504" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/autoSeg/code_test_files" />
+    <SUITE FILE_PATH="coverage/thesis_structured$evaluate_model.coverage" NAME="evaluate_model Coverage Results" MODIFIED="1584379367266" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/autoSeg/model_evaluation" />
+  </component>
+</project>

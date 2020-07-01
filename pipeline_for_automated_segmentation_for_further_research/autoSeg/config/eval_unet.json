@@ -1,0 +1,12 @@
+{
+	"modelsource": "train_unet",
+	"niftisource": "/media/data/kderaad/LipoData",
+	"dataset": ["LiTSDataset", "LiTSDataset"],
+	"batchsize": [1],
+	"outputtype": "save",
+	"onlyfirst": false,
+	"patchsize": [
+			[128, 128, 16]
+		],
+	"seg_to_use": [true, true, true]
+}

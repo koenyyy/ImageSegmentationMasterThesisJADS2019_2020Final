@@ -1,0 +1,21 @@
+{
+    "Model": ["unet3d", {
+      "k": 2,
+      "channels_in": 1,
+      "channels_out": 3,
+      "kernel_size": 3,
+      "activation": "F.leaky_relu",
+      "dropout": false,
+      "batchnorm": false,
+      "instancenorm": true,
+      "padding": true,
+      "stride": 1,
+      "dilation": 1,
+      "groups": 1,
+      "bias": true,
+      "padding_mode": "zeros",
+      "pooling_kernel": 2,
+      "pooling_stride": 2
+    }
+    ]
+}
