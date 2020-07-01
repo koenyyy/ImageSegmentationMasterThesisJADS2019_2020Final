@@ -1,0 +1,22 @@
+#!/bin/bash
+#SBATCH --ntasks=$ntasks
+#SBATCH --mem=$mem
+#SBATCH --gres=$gres
+#SBATCH -t $timelimit
+#SBATCH -o $outfile
+#SBATCH -e $errfile
+
+# This is the temporary dir for your job on the SSD
+# It will be deleted once your job finishes so don't forget to copy your files!
+# TODO change directories to fit my case (k)
+MY_TMP_DIR=/slurmtmp/$${SLURM_JOB_USER}.$${SLURM_JOB_ID}
+
+#cd /media/data/kderaad/
+
+#. /media/data/kderaad/python36/bin/activate
+
+#cd glassimaging
+
+$copystring
+
+$executestring

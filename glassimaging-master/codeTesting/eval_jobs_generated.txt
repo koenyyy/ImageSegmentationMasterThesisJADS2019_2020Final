@@ -1,0 +1,16 @@
+ python -m glassimaging.execution.jobs.jobeval eval_nifti_2 config/eval_unet.json experiment_results/20200530131606_BTD_iscaling_noOtsu_withBC_Res2
+ python -m glassimaging.execution.jobs.jobeval eval_nifti_2 config/eval_unet.json experiment_results/20200530131528_BTD_zscore_noOtsu_withBC_Res2
+ python -m glassimaging.execution.jobs.jobeval eval_nifti_2 config/eval_unet.json experiment_results/20200530131633_BTD_iscaling_withOtsu_withBC_Res2
+ python -m glassimaging.execution.jobs.jobeval eval_nifti_2 config/eval_unet.json experiment_results/20200530131707_BTD_zscore_withOtsu_withBC_Res2
+ python -m glassimaging.execution.jobs.jobeval eval_nifti_2 config/eval_unet.json experiment_results/20200530131757_BTD_zscore_noOtsu_withBC_Res4
+ python -m glassimaging.execution.jobs.jobeval eval_nifti_2 config/eval_unet.json experiment_results/20200530131856_BTD_iscaling_noOtsu_withBC_Res4
+ python -m glassimaging.execution.jobs.jobeval eval_nifti_2 config/eval_unet.json experiment_results/20200530131947_BTD_iscaling_withOtsu_withBC_Res4
+ python -m glassimaging.execution.jobs.jobeval eval_nifti_2 config/eval_unet.json experiment_results/20200530132035_BTD_zscore_withOtsu_withBC_Res4
+ python -m glassimaging.execution.jobs.jobeval eval_nifti_2 config/eval_unet.json experiment_results/20200530131528_BTD_zscore_noOtsu_withBC_Res2
+ python -m glassimaging.execution.jobs.jobeval eval_nifti_2 config/eval_unet.json experiment_results/20200530131606_BTD_iscaling_noOtsu_withBC_Res2
+ python -m glassimaging.execution.jobs.jobeval eval_nifti_2 config/eval_unet.json experiment_results/20200530131633_BTD_iscaling_withOtsu_withBC_Res2
+ python -m glassimaging.execution.jobs.jobeval eval_nifti_2 config/eval_unet.json experiment_results/20200530131707_BTD_zscore_withOtsu_withBC_Res2
+ python -m glassimaging.execution.jobs.jobeval eval_nifti_2 config/eval_unet.json experiment_results/20200530131757_BTD_zscore_noOtsu_withBC_Res4
+ python -m glassimaging.execution.jobs.jobeval eval_nifti_2 config/eval_unet.json experiment_results/20200530131856_BTD_iscaling_noOtsu_withBC_Res4
+ python -m glassimaging.execution.jobs.jobeval eval_nifti_2 config/eval_unet.json experiment_results/20200530131947_BTD_iscaling_withOtsu_withBC_Res4
+ python -m glassimaging.execution.jobs.jobeval eval_nifti_2 config/eval_unet.json experiment_results/20200530132035_BTD_zscore_withOtsu_withBC_Res4
