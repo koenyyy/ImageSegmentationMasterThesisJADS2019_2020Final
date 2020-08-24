@@ -110,6 +110,7 @@ class LitsDataset(NiftiDataset, Dataset):
                                                        resampling_factor=self.config_file['resampling_factor'])
 
         # normal segmentations in LiTS dataset contain tumors, we're only interested in the liver so we omit the tumors
+        # we set the tumor values (2) to be of type liver (1)
         segmentation[segmentation == 2] = 1
 
         seg_file = self.getFileName(patientname, 'seg')

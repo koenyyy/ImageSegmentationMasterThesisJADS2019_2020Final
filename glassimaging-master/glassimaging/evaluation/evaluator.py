@@ -112,18 +112,11 @@ class StandardEvaluator:
             inputpatch = torch.from_numpy(inputpatch)
             outputpatch = self.inferWithImage(inputpatch)
             outputpatch = outputpatch.cpu().numpy()
-            # heat_me = outputpatch
-            #### If the network has no padding (i.e. inputsize = output size)
-            #### you may want to crop anyway to prevent errors on the border
-            #if outputpatch.shape != tuple(targetsize):
-            #    outputpatch = outputpatch[:, :, crop[0]:-crop[0], crop[1]:-crop[1], crop[2]:-crop[2]]
             outputpatch = np.argmax(outputpatch, axis=1)
             outputselection = np.transpose([start, end])
             slice_obj = (
             slice(None), slice(*outputselection[0]), slice(*outputselection[1]), slice(*outputselection[2]))
             output[slice_obj] = outputpatch
-        #     heat_me_output[slice_obj] = heat_me[0, 1]
-        # get_heatmap(heat_me_output)
         return output
 
     def segmentVolumeWithOverlap(self, input_array, patchsize, n_overlap=2, n_out=5):

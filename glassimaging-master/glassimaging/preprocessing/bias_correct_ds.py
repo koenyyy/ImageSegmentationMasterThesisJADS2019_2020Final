@@ -2,7 +2,7 @@ import os
 import SimpleITK as sitk
 import numpy as np
 
-
+# bias correction is not used on the fly as it takes too long. Prepare your dataset using bias correction in advance using this code on your dataset or make use of the CPU cluster which is much faster and more accurate as here we work with more estimates.
 def apply_bias_correction(img:sitk.Image):
     # print('working on N4')
     initial_img = img
@@ -58,6 +58,7 @@ def apply_bias_correction(img:sitk.Image):
     return corrected_image
 
 
+# bias correction is not used on the fly as it takes too long. Prepare your dataset using bias correction in advance using this code on your dataset or make use of the CPU cluster which is much faster and more accurate as here we work with more estimates.
 def correct_dataset():
     dataset_loc = 'C:\\Users\\s145576\\Documents\\.Koen de Raad\\year19.20\\Thesis\\Erasmus MC\\Data\\BTD'
     save_loc = 'C:\\Users\\s145576\\Documents\\GitHub\\master_thesis\\glassimaging-master\\BTD_N4BC'

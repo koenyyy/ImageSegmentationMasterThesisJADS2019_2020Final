@@ -1,0 +1,24 @@
+{
+    "Nifti Source": "C:\\Users\\s145576\\Documents\\.Koen de Raad\\year19.20\\Thesis\\Erasmus MC\\Data\\Ergo_data_sample_Res1",
+    "Splits": [
+        0,
+        1,
+        2
+    ],
+    "Model Source": "train_unet",
+    "Patch size": [
+        16,
+        16,
+        16
+    ],
+    "Batch size": 1,
+    "Output type": "save",
+    "Only first": false,
+    "Dataset": "ErgoData",
+    "Brainmask": false,
+    "seed": 0,
+    "use_normalization": true,
+    "technique": "z-score",
+    "using_otsu_ROI": true,
+    "resampling_factor": 1
+}

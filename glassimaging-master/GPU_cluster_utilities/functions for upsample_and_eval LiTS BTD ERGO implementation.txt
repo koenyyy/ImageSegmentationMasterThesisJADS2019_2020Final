@@ -1,0 +1,569 @@
+Function for upsample and eval LiTS and BTD
+
+LiTS version:
+
+import SimpleITK as sitk
+import torch
+import pandas as pd
+import os
+from os import walk
+from glassimaging.models.diceloss import DiceLoss
+from glassimaging.evaluation.utils import getPerformanceMeasures
+import numpy as np
+
+def save_resampled_image(img, result_path, seg_id):
+    result_path = os.path.join(result_path, '{}_upsampled_segmented.nii.gz'.format(seg_id))
+    sitk.WriteImage(img, result_path)
+
+def upsample(segmentation, reference_img, seg_id, segmentations_loc):
+    factor = [ref/seg for ref, seg in zip(reference_img.GetSize(), segmentation.GetSize())]
+    segmentation.SetSpacing(factor)
+    reference_image2 = sitk.Image(reference_img.GetSize(), reference_img.GetPixelIDValue())
+    reference_image2.SetOrigin(reference_img.GetOrigin())
+    reference_image2.SetDirection(reference_img.GetDirection())
+    reference_image2.SetSpacing(reference_img.GetSpacing())
+
+    resampled_seg = sitk.Resample(segmentation, reference_image2)
+
+    if seg_id == "101":
+        print('saved upsampled version of 101')
+        save_resampled_image(resampled_seg, segmentations_loc, seg_id)
+
+    return resampled_seg
+
+def eval(segmentation, target, results, seg_id):
+    criterion = DiceLoss()
+    segmentation_array = sitk.GetArrayFromImage(segmentation)
+    target_array = sitk.GetArrayFromImage(target)
+
+    print(segmentation_array.shape, target_array.shape)
+    if results.empty:
+        sample_num = 0
+    else:
+        sample_num = results['sample'].iloc[-1]
+
+    for c in range(0, 5):
+        truth = target_array == c
+        positive = segmentation_array == c
+        (dice, TT, FP, FN, TN) = getPerformanceMeasures(positive, truth)
+        results = results.append(
+            {'sample': sample_num, 'class': c, 'subject': seg_id, 'TP': TT, 'FP': FP, 'FN': FN, 'TN': TN,
+             'dice': dice}, ignore_index=True)
+
+    return results
+
+def run_upsample_and_eval(seg_loc, ground_truth_loc, seg_id, results, segmentations_loc):
+    seg = sitk.ReadImage(seg_loc)
+    ground_truth = sitk.ReadImage(ground_truth_loc)
+    print("1", seg.GetSize(), ground_truth.GetSize())
+    if "Res2" in seg_loc or "Res4" in seg_loc:
+        resampling_factor = int(seg_loc.split("_Res")[1][0])
+        print("resampling_factor is :", resampling_factor)
+    
+        seg_np = sitk.GetArrayFromImage(seg)
+        ground_truth_np = sitk.GetArrayFromImage(ground_truth)
+    
+        seg_size = seg_np.shape
+        gt_size = ground_truth_np.shape
+    
+        if not seg_size == tuple(int(i / resampling_factor) for i in gt_size):
+            # here we calculate the difference in size and divide that by 2 to get the number that needs to be substracted from both sides in a dimension
+            size_diff = tuple((i - int(j / resampling_factor)) if (i - int(j / resampling_factor)) >= 0 else 0 for i, j in zip(seg_size, gt_size))
+            seg_np_normal_size = seg_np[:-size_diff[0] if not size_diff[0] <= 0 else seg_size[0], :-size_diff[1] if not size_diff[1] <= 0 else seg_size[1], :-size_diff[2] if not size_diff[2] <= 0 else seg_size[2]]
+            print('2', size_diff, seg_np_normal_size.shape)
+    
+            # make a copy of needed image information before creating image from np array
+            seg_origin = seg.GetOrigin()
+            seg_direction = seg.GetDirection()
+            seg_spacing = seg.GetSpacing()
+            seg = sitk.GetImageFromArray(seg_np_normal_size)
+            # assign earlier stored information back to new image
+            seg.SetOrigin(seg_origin)
+            seg.SetDirection(seg_direction)
+            seg.SetSpacing(seg_spacing)
+    #print(seg_loc, ground_truth_loc)
+    upsampled_seg = upsample(seg, ground_truth, seg_id, segmentations_loc)
+    #print('image upsampled to size', upsampled_seg.GetSize(), 'vx spacing', upsampled_seg.GetSpacing())
+    results = eval(upsampled_seg, ground_truth, results, seg_id)
+    return results
+
+def get_segmentations(segmentations_loc):
+    # Listing all the names of the segmentations
+    segmentations = []  # create an empty list with segmentations
+
+    for dirName, subdirList, fileList in os.walk(segmentations_loc):
+        for filename in fileList:
+            if ".nii" in filename.lower():  # check whether the file's .nii
+                if "segmented" in filename.lower() and not "101_upsampled_segmented" in filename.lower():
+                    segmentations.append(os.path.join(dirName, filename))
+    segmentations.sort()
+    return segmentations
+
+
+def get_ground_truths(ground_truths_loc):
+    # Listing all the names of the segmentations
+    ground_truth = []  # create an empty list with segmentations
+
+    for dirName, subdirList, fileList in os.walk(ground_truths_loc):
+        for filename in fileList:
+            if ".nii" in filename.lower():  # check whether the file's .nii
+                if "segmentation" in filename.lower():
+                    ground_truth.append(os.path.join(dirName, filename))
+
+    ground_truth.sort()
+    return ground_truth
+
+
+def get_overlapping_segs(segmentations, ground_truths):
+    available_ground_truths = []
+
+    # getting ids for all the segmentations made
+    id_seg_list = []
+    for seg in segmentations:
+        id = seg.split(os.sep)[-1].split("_")[0]
+        id_seg_list.append(id)
+
+    # use the ids to find what ground truths are available and store them in a new list (here zfill should normally be used for padding the ground truths)
+    available_ground_truths = [gt for gt in ground_truths for id in id_seg_list if id == gt.split(os.sep)[-2].split("-")[1].split(".nii")[0]]
+
+    # get ids for all the new_ground_truths
+    id_gt_list = []
+    for gt in available_ground_truths:
+        id = gt.split(os.sep)[-2].split("-")[1].split(".nii")[0]
+        id_gt_list.append(id)
+    # use the ids present in the available_ground_truths list to find what segs can be used
+    # remove the zfill command if not working with LiTS data. else just use id.zfill(3)V
+    available_segmentations = [aseg for aseg in segmentations for id in id_gt_list if id == aseg.split(os.sep)[-1].split("_")[0]]
+
+    available_segmentations.sort()
+    # edit list to enable proper sorting, afterwards rename to normal again. Not needed for new eval stuff
+    #available_ground_truths = [i.replace(i.split("/")[-2].split("-")[1].split(".nii")[0], i.split("/")[-2].split("-")[1].split(".nii")[0].zfill(3)) for i in available_ground_truths]
+    available_ground_truths.sort()
+    #available_ground_truths = [i.replace(i.split("/")[-2].split("-")[1].split(".nii")[0], i.split("/")[-2].split("-")[1].split(".nii")[0].lstrip("0")) for i in available_ground_truths]
+    id_gt_list.sort()
+    print('#1', len(segmentations), segmentations, len(id_gt_list), id_gt_list)
+    print('seg', id_seg_list, '\n', 'gt', id_gt_list)
+    print('available_segmentations', len(available_segmentations), available_segmentations)
+    print('available_ground_truths', len(available_ground_truths), available_ground_truths)
+    print('these files will be upsampled and evaluated', id_gt_list)
+
+    return zip(available_segmentations, available_ground_truths), id_gt_list
+
+def eval_all_segmentations(segmentations_loc, ground_truths_loc):
+    results = pd.DataFrame(columns=['sample', 'class', 'subject', 'TP', 'FP', 'FN', 'TN', 'dice'])
+
+    # get sorted list of segmentations and ground_truths
+    segmentations = get_segmentations(segmentations_loc)
+    ground_truths = get_ground_truths(ground_truths_loc)
+
+    # get the ground truths that belong to the segmentations
+    overlapping_segs, id_list = get_overlapping_segs(segmentations, ground_truths)
+
+    # for all segmentations get the corresponding ground truth and run the upsample and eval procedure
+    for (seg_loc, ground_truth_loc), id in zip(overlapping_segs, id_list):
+        results = run_upsample_and_eval(seg_loc, ground_truth_loc, id, results, segmentations_loc)
+
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    result_path = os.path.join(segmentations_loc, 'upsampled_eval_results.csv')
+    results.to_csv(result_path)
+    return results
+
+if __name__ == '__main__':
+    list_of_folders_to_upsample_and_eval = ["/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200605181431_LiTS_zscore_noOtsu_noBC_Res2/eval_nifti_20200605181431_LiTS_zscore_noOtsu_noBC_Res2",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200605181527_LiTS_iscaling_noOtsu_noBC_Res2/eval_nifti_20200605181527_LiTS_iscaling_noOtsu_noBC_Res2",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200605181547_LiTS_iscaling_withOtsu_noBC_Res2/eval_nifti_20200605181547_LiTS_iscaling_withOtsu_noBC_Res2",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200605181615_LiTS_zscore_withOtsu_noBC_Res2/eval_nifti_20200605181615_LiTS_zscore_withOtsu_noBC_Res2",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200605181753_LiTS_zscore_noOtsu_noBC_Res4/eval_nifti_20200605181753_LiTS_zscore_noOtsu_noBC_Res4",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200605181842_LiTS_iscaling_noOtsu_noBC_Res4/eval_nifti_20200605181842_LiTS_iscaling_noOtsu_noBC_Res4",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200605181904_LiTS_iscaling_withOtsu_noBC_Res4/eval_nifti_20200605181904_LiTS_iscaling_withOtsu_noBC_Res4",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200605181938_LiTS_zscore_withOtsu_noBC_Res4/eval_nifti_20200605181938_LiTS_zscore_withOtsu_noBC_Res4",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200605182105_LiTS_zscore_noOtsu_withBC_Res2/eval_nifti_20200605182105_LiTS_zscore_noOtsu_withBC_Res2",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200605182229_LiTS_iscaling_noOtsu_withBC_Res2/eval_nifti_20200605182229_LiTS_iscaling_noOtsu_withBC_Res2",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200605182320_LiTS_iscaling_withOtsu_withBC_Res2/eval_nifti_20200605182320_LiTS_iscaling_withOtsu_withBC_Res2",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200605182355_LiTS_zscore_withOtsu_withBC_Res2/eval_nifti_20200605182355_LiTS_zscore_withOtsu_withBC_Res2",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200605182556_LiTS_zscore_noOtsu_withBC_Res4/eval_nifti_20200605182556_LiTS_zscore_noOtsu_withBC_Res4",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200605182634_LiTS_iscaling_noOtsu_withBC_Res4/eval_nifti_20200605182634_LiTS_iscaling_noOtsu_withBC_Res4",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200605182655_LiTS_iscaling_withOtsu_withBC_Res4/eval_nifti_20200605182655_LiTS_iscaling_withOtsu_withBC_Res4",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200605182721_LiTS_zscore_withOtsu_withBC_Res4/eval_nifti_20200605182721_LiTS_zscore_withOtsu_withBC_Res4",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200609100233_LiTS_noNorm_noOtsu_noBC_Res2/eval_nifti_20200609100233_LiTS_noNorm_noOtsu_noBC_Res2",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200609100831_LiTS_noNorm_noOtsu_noBC_Res4/eval_nifti_20200609100831_LiTS_noNorm_noOtsu_noBC_Res4"]
+    for folder in list_of_folders_to_upsample_and_eval:
+        segmentations_loc = folder
+        ground_truths_loc = "/media/data/kderaad/LiTSRes1"
+        results = eval_all_segmentations(segmentations_loc, ground_truths_loc)
+
+	
+	
+BTD version:
+
+import SimpleITK as sitk
+import torch
+import pandas as pd
+import os
+from os import walk
+from glassimaging.models.diceloss import DiceLoss
+from glassimaging.evaluation.utils import getPerformanceMeasures
+import numpy as np
+
+def save_resampled_image(img, result_path, seg_id):
+    result_path = os.path.join(result_path, '{}_upsampled_segmented.nii.gz'.format(seg_id))
+    sitk.WriteImage(img, result_path)
+
+def upsample(segmentation, reference_img, seg_id, segmentations_loc):
+    factor = [ref/seg for ref, seg in zip(reference_img.GetSize(), segmentation.GetSize())]
+    segmentation.SetSpacing(factor)
+    reference_image2 = sitk.Image(reference_img.GetSize(), reference_img.GetPixelIDValue())
+    reference_image2.SetOrigin(reference_img.GetOrigin())
+    reference_image2.SetDirection(reference_img.GetDirection())
+    reference_image2.SetSpacing(reference_img.GetSpacing())
+
+    resampled_seg = sitk.Resample(segmentation, reference_image2)
+
+    if seg_id == "0272":
+        print('saved upsampled version of 0272')
+        save_resampled_image(resampled_seg, segmentations_loc, seg_id)
+
+    return resampled_seg
+
+def eval(segmentation, target, results, seg_id):
+    criterion = DiceLoss()
+    segmentation_array = sitk.GetArrayFromImage(segmentation)
+    target_array = sitk.GetArrayFromImage(target)
+
+    print(segmentation_array.shape, target_array.shape)
+    if results.empty:
+        sample_num = 0
+    else:
+        sample_num = results['sample'].iloc[-1]
+
+    for c in range(0, 5):
+        truth = target_array == c
+        positive = segmentation_array == c
+        (dice, TT, FP, FN, TN) = getPerformanceMeasures(positive, truth)
+        results = results.append(
+            {'sample': sample_num, 'class': c, 'subject': seg_id, 'TP': TT, 'FP': FP, 'FN': FN, 'TN': TN,
+             'dice': dice}, ignore_index=True)
+
+    return results
+
+def run_upsample_and_eval(seg_loc, ground_truth_loc, seg_id, results, segmentations_loc):
+    seg = sitk.ReadImage(seg_loc)
+    ground_truth = sitk.ReadImage(ground_truth_loc)
+    #print(seg_loc, ground_truth_loc)
+    upsampled_seg = upsample(seg, ground_truth, seg_id, segmentations_loc)
+    #print('image upsampled to size', upsampled_seg.GetSize(), 'vx spacing', upsampled_seg.GetSpacing())
+    results = eval(upsampled_seg, ground_truth, results, seg_id)
+    return results
+
+def get_segmentations(segmentations_loc):
+    # Listing all the names of the segmentations
+    segmentations = []  # create an empty list with segmentations
+
+    for dirName, subdirList, fileList in os.walk(segmentations_loc):
+        for filename in fileList:
+            if ".nii" in filename.lower():  # check whether the file's .nii
+                if "segmented" in filename.lower() and not "0272_upsampled_segmented" in filename.lower():
+                    segmentations.append(os.path.join(dirName, filename))
+    segmentations.sort()
+    return segmentations
+
+
+def get_ground_truths(ground_truths_loc):
+    # Listing all the names of the segmentations
+    ground_truth = []  # create an empty list with segmentations
+
+    for dirName, subdirList, fileList in os.walk(ground_truths_loc):
+        for filename in fileList:
+            if ".nii" in filename.lower():  # check whether the file's .nii
+                if "mask" in filename.lower() and not "brain" in filename.lower():
+                    ground_truth.append(os.path.join(dirName, filename))
+
+    ground_truth.sort()
+    return ground_truth
+
+
+def get_overlapping_segs(segmentations, ground_truths):
+    available_ground_truths = []
+
+    # getting ids for all the segmentations made
+    id_seg_list = []
+    for seg in segmentations:
+        id = seg.split(os.sep)[-1].split("-")[1].split("_")[0]
+        id_seg_list.append(id)
+
+    # use the ids to find what ground truths are available and store them in a new list
+    available_ground_truths = [gt for gt in ground_truths for id in id_seg_list if id in gt.split(os.sep)[-2].split("-")[1]]
+
+    # get ids for all the new_ground_truths
+    id_gt_list = []
+    for gt in available_ground_truths:
+        id = gt.split(os.sep)[-2].split("-")[1]
+        id_gt_list.append(id)
+    # use the ids present in the available_ground_truths list to find what segs can be used
+    available_segmentations = [aseg for aseg in segmentations for id in id_gt_list if id in aseg.split(os.sep)[-1].split("-")[1].split("_")[0]]
+
+    available_segmentations.sort()
+    available_ground_truths.sort()
+    id_gt_list.sort()
+    print('#1', len(segmentations), segmentations, len(id_gt_list), id_gt_list)
+    print('seg', id_seg_list, '\n', 'gt', id_gt_list)
+    print('available_segmentations', len(available_segmentations), available_segmentations)
+    print('available_ground_truths', len(available_ground_truths), available_ground_truths)
+    print('these files will be upsampled and evaluated', id_gt_list)
+
+    return zip(available_segmentations, available_ground_truths), id_gt_list
+
+def eval_all_segmentations(segmentations_loc, ground_truths_loc):
+    results = pd.DataFrame(columns=['sample', 'class', 'subject', 'TP', 'FP', 'FN', 'TN', 'dice'])
+
+    # get sorted list of segmentations and ground_truths
+    segmentations = get_segmentations(segmentations_loc)
+    ground_truths = get_ground_truths(ground_truths_loc)
+
+    # get the ground truths that belong to the segmentations
+    overlapping_segs, id_list = get_overlapping_segs(segmentations, ground_truths)
+
+    # for all segmentations get the corresponding ground truth and run the upsample and eval procedure
+    for (seg_loc, ground_truth_loc), id in zip(overlapping_segs, id_list):
+        results = run_upsample_and_eval(seg_loc, ground_truth_loc, id, results, segmentations_loc)
+
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    result_path = os.path.join(segmentations_loc, 'upsampled_eval_results.csv')
+    results.to_csv(result_path)
+    return results
+
+if __name__ == '__main__':
+    list_of_folders_to_upsample_and_eval = ["/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200530110250_BTD_zscore_noOtsu_noBC_Res2/eval_nifti/result",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200530110331_BTD_iscaling_noOtsu_noBC_Res2/eval_nifti/result",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200530110358_BTD_iscaling_withOtsu_noBC_Res2/eval_nifti/result",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200530110507_BTD_zscore_withOtsu_noBC_Res2/eval_nifti/result",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200530110549_BTD_zscore_noOtsu_noBC_Res4/eval_nifti/result",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200530110627_BTD_iscaling_noOtsu_noBC_Res4/eval_nifti/result",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200530110658_BTD_iscaling_withOtsu_noBC_Res4/eval_nifti/result",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200530110732_BTD_zscore_withOtsu_noBC_Res4/eval_nifti/result",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200530131528_BTD_zscore_noOtsu_withBC_Res2/eval_nifti/result",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200530131606_BTD_iscaling_noOtsu_withBC_Res2/eval_nifti/result",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200530131633_BTD_iscaling_withOtsu_withBC_Res2/eval_nifti/result",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200530131707_BTD_zscore_withOtsu_withBC_Res2/eval_nifti/result",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200530131757_BTD_zscore_noOtsu_withBC_Res4/eval_nifti/result",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200530131856_BTD_iscaling_noOtsu_withBC_Res4/eval_nifti/result",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200530131947_BTD_iscaling_withOtsu_withBC_Res4/eval_nifti/result",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200530132035_BTD_zscore_withOtsu_withBC_Res4/eval_nifti/result"]
+    for folder in list_of_folders_to_upsample_and_eval:
+        segmentations_loc = folder
+        ground_truths_loc = "/media/data/kderaad/BTD_N4BC"
+        results = eval_all_segmentations(segmentations_loc, ground_truths_loc)
+
+		
+Ergo version:
+
+import SimpleITK as sitk
+import torch
+import pandas as pd
+import os
+from os import walk
+from glassimaging.models.diceloss import DiceLoss
+from glassimaging.evaluation.utils import getPerformanceMeasures
+import numpy as np
+
+def save_resampled_image(img, result_path, seg_id):
+    result_path = os.path.join(result_path, '{}_upsampled_segmented.nii.gz'.format(seg_id))
+    sitk.WriteImage(img, result_path)
+
+def upsample(segmentation, reference_img, seg_id, segmentations_loc):
+    #print("upsample seg spacing", segmentation.GetSpacing())
+    factor = [spc / (ref / seg) for ref, seg, spc in zip(reference_img.GetSize(), segmentation.GetSize(), segmentation.GetSpacing())]
+    #segmentation.SetSpacing(factor)
+
+    reference_image2 = sitk.Image(reference_img.GetSize(), reference_img.GetPixelIDValue())
+    reference_image2.SetOrigin(reference_img.GetOrigin())
+    reference_image2.SetDirection(reference_img.GetDirection())
+    reference_image2.SetSpacing(reference_img.GetSpacing())
+
+    resampled_seg = sitk.Resample(segmentation, reference_image2)
+    #print("segmentation px value id", segmentation.GetPixelIDValue(), "reference_img px value id", reference_img.GetPixelIDValue(), "resampled_seg px value id", resampled_seg.GetPixelIDValue())
+    #print("segmentation px spc", segmentation.GetSpacing(), "reference_img px spc", reference_img.GetSpacing(), "resampled_seg px spc", resampled_seg.GetSpacing(), "factor px spc", factor)
+    #print("segmentation origin", segmentation.GetOrigin(), "reference_img origin", reference_img.GetOrigin(), "resampled_seg origin", resampled_seg.GetOrigin())
+
+    if seg_id == "011":
+        print('saved upsampled version of 011')
+        save_resampled_image(resampled_seg, segmentations_loc, seg_id)
+		
+    return resampled_seg
+
+def eval(segmentation, target, results, seg_id):
+    criterion = DiceLoss()
+    segmentation_array = sitk.GetArrayFromImage(segmentation)
+    target_array = sitk.GetArrayFromImage(target)
+
+    print(segmentation_array.shape, target_array.shape)
+    if results.empty:
+        sample_num = 0
+    else:
+        sample_num = results['sample'].iloc[-1]
+
+    for c in range(0, 5):
+        truth = target_array == c
+        positive = segmentation_array == c
+        (dice, TT, FP, FN, TN) = getPerformanceMeasures(positive, truth)
+        results = results.append(
+            {'sample': sample_num, 'class': c, 'subject': seg_id, 'TP': TT, 'FP': FP, 'FN': FN, 'TN': TN,
+             'dice': dice}, ignore_index=True)
+
+    return results
+
+def run_upsample_and_eval(seg_loc, ground_truth_loc, seg_id, results, segmentations_loc):
+    seg = sitk.ReadImage(seg_loc, sitk.sitkUInt16)
+    ground_truth = sitk.ReadImage(ground_truth_loc, sitk.sitkUInt16)
+    print("1", seg.GetSize(), ground_truth.GetSize())
+    if "Res2" in seg_loc or "Res4" in seg_loc:
+        resampling_factor = int(seg_loc.split("_Res")[1][0])
+        print("resampling_factor is :", resampling_factor)
+    
+        seg_np = sitk.GetArrayFromImage(seg)
+        ground_truth_np = sitk.GetArrayFromImage(ground_truth)
+
+        ground_truth_np[ground_truth_np == 2] = 1
+        ground_truth_np[ground_truth_np == 3] = 1
+        ground_truth_np[ground_truth_np == 4] = 1
+    
+        seg_size = seg_np.shape
+        gt_size = ground_truth_np.shape
+    
+        if not seg_size == tuple(int(i / resampling_factor) for i in gt_size):
+            # here we calculate the difference in size and divide that by 2 to get the number that needs to be substracted from both sides in a dimension
+            size_diff = tuple((i - int(j / resampling_factor)) if (i - int(j / resampling_factor)) >= 0 else 0 for i, j in zip(seg_size, gt_size))
+            seg_np_normal_size = seg_np[:-size_diff[0] if not size_diff[0] <= 0 else seg_size[0], :-size_diff[1] if not size_diff[1] <= 0 else seg_size[1], :-size_diff[2] if not size_diff[2] <= 0 else seg_size[2]]
+            print('2', size_diff, seg_np_normal_size.shape)
+
+            # make a copy of needed image information before creating image from np array
+            seg_origin = seg.GetOrigin()
+            seg_direction = seg.GetDirection()
+            seg_spacing = seg.GetSpacing()
+            seg2 = sitk.GetImageFromArray(seg_np_normal_size)
+            # assign earlier stored information back to new image
+            seg2.SetOrigin(seg_origin)
+            seg2.SetDirection(seg_direction)
+            seg2.SetSpacing(seg_spacing)
+        else:
+            seg2 = seg
+			
+        ground_truth_origin = ground_truth.GetOrigin()
+        ground_truth_direction = ground_truth.GetDirection()
+        ground_truth_spacing = ground_truth.GetSpacing()
+        ground_truth2 = sitk.GetImageFromArray(ground_truth_np)
+        ground_truth2.SetOrigin(ground_truth_origin)
+        ground_truth2.SetDirection(ground_truth_direction)
+        ground_truth2.SetSpacing(ground_truth_spacing)
+
+    else:
+        seg2 = seg
+        ground_truth2 = ground_truth
+    #print(seg_loc, ground_truth_loc)
+    upsampled_seg = upsample(seg2, ground_truth2, seg_id, segmentations_loc)
+    #print('image upsampled to size', upsampled_seg.GetSize(), 'vx spacing', upsampled_seg.GetSpacing())
+    results = eval(upsampled_seg, ground_truth2, results, seg_id)
+    return results
+
+def get_segmentations(segmentations_loc):
+    # Listing all the names of the segmentations
+    segmentations = []  # create an empty list with segmentations
+
+    for dirName, subdirList, fileList in os.walk(segmentations_loc):
+        for filename in fileList:
+            if ".nii" in filename.lower():  # check whether the file's .nii
+                if "segmented" in filename.lower() and not "011_upsampled_segmented" in filename.lower():
+                    segmentations.append(os.path.join(dirName, filename))
+    segmentations.sort()
+    return segmentations
+
+
+def get_ground_truths(ground_truths_loc):
+    # Listing all the names of the segmentations
+    ground_truth = []  # create an empty list with segmentations
+
+    for dirName, subdirList, fileList in os.walk(ground_truths_loc):
+        for filename in fileList:
+            if ".nii" in filename.lower():  # check whether the file's .nii
+                if "combined_bone_mask" in filename.lower():
+                    ground_truth.append(os.path.join(dirName, filename))
+
+    ground_truth.sort()
+    return ground_truth
+
+
+def get_overlapping_segs(segmentations, ground_truths):
+    available_ground_truths = []
+
+    # getting ids for all the segmentations made
+    id_seg_list = []
+    for seg in segmentations:
+        id = seg.split(os.sep)[-1].split("_")[0]
+        id_seg_list.append(id)
+
+    # use the ids to find what ground truths are available and store them in a new list (here zfill should normally be used for padding the ground truths)
+    available_ground_truths = [gt for gt in ground_truths for id in id_seg_list if id == gt.split(os.sep)[-1].split("_")[0]]
+
+    # get ids for all the new_ground_truths
+    id_gt_list = []
+    for gt in available_ground_truths:
+        id = gt.split(os.sep)[-1].split("_")[0]
+        id_gt_list.append(id)
+    # use the ids present in the available_ground_truths list to find what segs can be used
+    # remove the zfill command if not working with LiTS data. else just use id.zfill(3)V
+    available_segmentations = [aseg for aseg in segmentations for id in id_gt_list if id == aseg.split(os.sep)[-1].split("_")[0]]
+
+    available_segmentations.sort()
+    # edit list to enable proper sorting, afterwards rename to normal again. Not needed for new eval stuff
+    #available_ground_truths = [i.replace(i.split("/")[-2].split("-")[1].split(".nii")[0], i.split("/")[-2].split("-")[1].split(".nii")[0].zfill(3)) for i in available_ground_truths]
+    available_ground_truths.sort()
+    #available_ground_truths = [i.replace(i.split("/")[-2].split("-")[1].split(".nii")[0], i.split("/")[-2].split("-")[1].split(".nii")[0].lstrip("0")) for i in available_ground_truths]
+    id_gt_list.sort()
+    print('#1', len(segmentations), segmentations, len(id_gt_list), id_gt_list)
+    print('seg', id_seg_list, '\n', 'gt', id_gt_list)
+    print('available_segmentations', len(available_segmentations), available_segmentations)
+    print('available_ground_truths', len(available_ground_truths), available_ground_truths)
+    print('these files will be upsampled and evaluated', id_gt_list)
+
+    return zip(available_segmentations, available_ground_truths), id_gt_list
+
+def eval_all_segmentations(segmentations_loc, ground_truths_loc):
+    results = pd.DataFrame(columns=['sample', 'class', 'subject', 'TP', 'FP', 'FN', 'TN', 'dice'])
+
+    # get sorted list of segmentations and ground_truths
+    segmentations = get_segmentations(segmentations_loc)
+    ground_truths = get_ground_truths(ground_truths_loc)
+
+    # get the ground truths that belong to the segmentations
+    overlapping_segs, id_list = get_overlapping_segs(segmentations, ground_truths)
+
+    # for all segmentations get the corresponding ground truth and run the upsample and eval procedure
+    for (seg_loc, ground_truth_loc), id in zip(overlapping_segs, id_list):
+        results = run_upsample_and_eval(seg_loc, ground_truth_loc, id, results, segmentations_loc)
+
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    result_path = os.path.join(segmentations_loc, 'upsampled_eval_results.csv')
+    results.to_csv(result_path)
+    return results
+
+if __name__ == '__main__':
+    list_of_folders_to_upsample_and_eval = ["/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200614165713_Ergo_zscore_noOtsu_noBC_Res2/eval_nifti_20200614165713_Ergo_zscore_noOtsu_noBC_Res2",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200614165830_Ergo_iscaling_noOtsu_noBC_Res2/eval_nifti_20200614165830_Ergo_iscaling_noOtsu_noBC_Res2",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200614165919_Ergo_iscaling_withOtsu_noBC_Res2/eval_nifti_20200614165919_Ergo_iscaling_withOtsu_noBC_Res2",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200614170002_Ergo_zscore_withOtsu_noBC_Res2/eval_nifti_20200614170002_Ergo_zscore_withOtsu_noBC_Res2",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200614170102_Ergo_zscore_noOtsu_noBC_Res4/eval_nifti_20200614170102_Ergo_zscore_noOtsu_noBC_Res4",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200614170154_Ergo_iscaling_noOtsu_noBC_Res4/eval_nifti_20200614170154_Ergo_iscaling_noOtsu_noBC_Res4",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200614170240_Ergo_iscaling_withOtsu_noBC_Res4/eval_nifti_20200614170240_Ergo_iscaling_withOtsu_noBC_Res4",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200614170320_Ergo_zscore_withOtsu_noBC_Res4/eval_nifti_20200614170320_Ergo_zscore_withOtsu_noBC_Res4",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200614170715_Ergo_zscore_noOtsu_withBC_Res2/eval_nifti_20200614170715_Ergo_zscore_noOtsu_withBC_Res2",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200614170753_Ergo_iscaling_noOtsu_withBC_Res2/eval_nifti_20200614170753_Ergo_iscaling_noOtsu_withBC_Res2",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200614170823_Ergo_iscaling_withOtsu_withBC_Res2/eval_nifti_20200614170823_Ergo_iscaling_withOtsu_withBC_Res2",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200614170855_Ergo_zscore_withOtsu_withBC_Res2/eval_nifti_20200614170855_Ergo_zscore_withOtsu_withBC_Res2",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200614170936_Ergo_zscore_noOtsu_withBC_Res4/eval_nifti_20200614170936_Ergo_zscore_noOtsu_withBC_Res4",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200614171007_Ergo_iscaling_noOtsu_withBC_Res4/eval_nifti_20200614171007_Ergo_iscaling_noOtsu_withBC_Res4",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200614171033_Ergo_iscaling_withOtsu_withBC_Res4/eval_nifti_20200614171033_Ergo_iscaling_withOtsu_withBC_Res4",
+"/media/data/kderaad/glassimaging/glassimaging-master/experiment_results/20200614171056_Ergo_zscore_withOtsu_withBC_Res4/eval_nifti_20200614171056_Ergo_zscore_withOtsu_withBC_Res4"]
+    for folder in list_of_folders_to_upsample_and_eval:
+        segmentations_loc = folder
+        ground_truths_loc = "/media/data/kderaad/Ergo_Res1"
+        results = eval_all_segmentations(segmentations_loc, ground_truths_loc)

@@ -1,0 +1,25 @@
+{
+				"Epochs": 10,
+				"Splits": [0,1,2],
+				"Model Source": "setup_unet",
+				"Patch size": [
+				 16,
+				 16,
+				 16
+				],
+                "Num Workers": 0,
+				"Nifti Source": "C:\\Users\\s145576\\Documents\\.Koen de Raad\\year19.20\\Thesis\\Erasmus MC\\Data\\Ergo_data_sample_Res1",
+                "Dataset": "ErgoData",
+				"Batch size": 1,
+				"Batches per epoch": 1,
+				"Testsplits": [3],
+				"Sequences": ["t1t2"],
+                "Loss": "dice",
+                "loss_weights": [0.3000, 1.0000],
+		        "Brainmask": false,
+                "seed" : 0,
+                "use_normalization": true,
+                "technique": "z-score",
+                "using_otsu_ROI": true,
+                "resampling_factor": 1
+			}

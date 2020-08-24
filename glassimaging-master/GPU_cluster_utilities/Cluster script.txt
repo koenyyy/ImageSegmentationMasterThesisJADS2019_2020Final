@@ -1,0 +1,25 @@
+Basics before running anything (go to right dir and enable right python module):
+	cd ../..
+	cd media/data/kderaad/glassimaging/glassimaging-master
+
+	module load python/3.7.4
+
+Basics ACTIVATE YOUR VIRTUAL ENV:
+	source venv/bin/activate
+
+Mount the bigr cluster to the GPU cluster:
+	sshfs -o IdentityFile=~/.ssh/id_rsa -oStrictHostKeyChecking=no kderaad@bigr-app001:/scratch/kderaad /media/data/kderaad/bigr_mount
+	
+
+Unmount the bigr cluster to the GPU cluster:
+fusermount -u /media/data/kderaad/bigr_mount
+
+
+Run experiment on LiTS or Ergo (be sure to also adapt the config files to be appropriate)
+python -m glassimaging.execution.experiment LiTS_noNorm_noOtsu_noBC_Res4 config/unet_end_to_end.json experiment_results
+
+python -m glassimaging.execution.experiment Ergo_zscore_noOtsu_noBC_Res1 config/unet_end_to_end.json experiment_results
+
+
+Run evaluation job on conduted experiment:
+python -m glassimaging.execution.jobs.jobeval eval_nifti_2 config/eval_unet.json experiment_results/20200529161504_BTD_zscore_nohOtsu_noBC_Res1

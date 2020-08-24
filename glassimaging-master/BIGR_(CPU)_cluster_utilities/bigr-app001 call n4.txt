@@ -1,0 +1,21 @@
+SCRIPT FOR PERFORMING N4 BIAS CORRECTION
+
+FIRST CREATE THE SCRIPT THAT IS USED FOR BIAS CORRECTING ALL .NIIs
+cd scripts
+module unload python
+module load python3/3.6.8
+python -m make_n4bc_array_script
+
+
+
+then copy the create_subtree.sh script to /scratch/kderaad
+
+THEN COPY THE create_subtree.sh SCRIPT to /scratch/kderaad. THE CREATE SUBTREE SCRIPT WILL CREATE THE FOLDER STRUCTURE NEEDED FOR PERFORMING N4BC
+IN /scratch/kderaad FOLDER DO:
+bash create_subtree.sh
+
+THEN GO BACK TO /home/kderaad/scripts AND EXECUTE THESE LINES OF CODE TO RUN THE ACTUAL N4 BIAS CORRECTION:
+
+cd scripts
+module load n4
+bigrsub -q day -N test_n4 -R 16G -l /home/kderaad/scripts/run_n4bc -t n4bc_array.sh

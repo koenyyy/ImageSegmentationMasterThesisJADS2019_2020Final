@@ -1,0 +1,24 @@
+{
+    "jobs": {
+		"setup_unet": {
+			"dependencies": [],
+			"type": "setup",
+			"configfile": "config/setup_unet.json"
+		},
+		"train_unet": {
+			"dependencies": ["setup_unet"],
+			"type": "train",
+			"configfile": "config/train_unet.json"
+		},
+		"eval_nifti": {
+			"dependencies": ["train_unet"],
+			"type": "eval",
+			"configfile": "config/eval_unet.json"
+		}
+	},
+	"execution": [ ["setup_unet",
+			"train_unet",
+			"eval_nifti"]
+	],
+	"timelimit": "2-00:00:00"
+}

@@ -8,6 +8,7 @@ class N4BiasCorrection(object):
 
     """
 
+    # bias correction is not used on the fly as it takes too long. Prepare your dataset using bias correction in advance using for example the cpu cluster.
     def __call__(self, sample):
         image = sample['data']
         image = sitk.GetImageFromArray(image)

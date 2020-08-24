@@ -24,6 +24,7 @@ class NiftiDataset:
     Not normalized
     """
     def loadImage(self, path):
+        # as opposed to the original code by Karin, i'm making use of the sitk imaging library and not nibabel
         img = sitk.ReadImage(path)
 
         img = sitk.GetArrayFromImage(img)
@@ -42,11 +43,6 @@ class NiftiDataset:
         print("debugging", img.GetPixelIDTypeAsString())
         # returns a sitk image
         img = self.normalize_img(img, technique, using_otsu_ROI)
-        # reshape image form (1,x,y,z) to (1, z, y, x)
-        # img = np.reshape(img, (img.shape[2], img.shape[1],img.shape[0]))
-        #
-        # print(img.shape)
-
 
         return img
 
@@ -87,8 +83,8 @@ class NiftiDataset:
         img_size = image.shape
         seg_size = segmentation.shape
         print(img_size, seg_size)
-        # print("HIERO##################", self.df.loc[subject][sequences[0]])
-        # check if img is larger than default patch size for data that has been pre-resampled
+
+        # check if img is larger than default patch size for data that has been pre-resampled. ("Res1" or similar must be present in the path if it was pre-resampled otherwise no mention of res is present in the path)
         if "Res1" in self.df.loc[subject][sequences[0]].lower():
             new_img_size = tuple([i if i > 113 else 113 for i in img_size[-3:]])
             new_img_size = img_size[:-3] + new_img_size
@@ -123,7 +119,7 @@ class NiftiDataset:
         # TODO check if resampling should be done using nearest neighbour
         if not resampling_factor == 1:
             image = [self.resample_img2(image[i], sitk.ReadImage(self.df.loc[subject][sequences[i]]), resampling_factor, use_seg=False) for i, seq in enumerate(sequences)]
-            segmentation = self.resample_img2(segmentation, sitk.ReadImage(self.df.loc[subject]['seg']), resampling_factor, use_seg=False)
+            segmentation = self.resample_img2(segmentation, sitk.ReadImage(self.df.loc[subject]['seg']), resampling_factor, use_seg=True)
 
         image = [np.transpose(i) for i in image]
         segmentation = np.transpose(segmentation)
@@ -198,6 +194,7 @@ class NiftiDataset:
     def getFileName(self, subject, sequence):
         return self.df.at[subject, sequence]
 
+    #function that normalizes a given image based on the technique specified (z-score/robust min-max (i-scaling) etc)
     def normalize_img(self, img, technique, using_otsu_ROI):
         initial_img_np = sitk.GetArrayFromImage(img)
         #TODO check if shape is good
@@ -212,6 +209,7 @@ class NiftiDataset:
             print('Normalizing usign the z-score')
             # values_nonzero = img[np.nonzero(img)]
             flat_img = img.flatten()
+            # getting the non-zero values of the image using the cv2 library (allows for speeduip compared to np)
             values_nonzero = flat_img[np.fliplr(cv2.findNonZero((flat_img > 0).astype(np.uint8)).squeeze())[:,0]]
             mean_nonzero = np.mean(values_nonzero)
             std_nonzero = np.std(values_nonzero)
@@ -226,6 +224,7 @@ class NiftiDataset:
             print('Normalizing usign intensity scaling normalization')
             # values_nonzero = img[np.nonzero(img)]
             flat_img = img.flatten()
+            # getting the non-zero values of the image using the cv2 library (allows for speeduip compared to np)
             values_nonzero = flat_img[np.fliplr(cv2.findNonZero((flat_img > 0).astype(np.uint8)).squeeze())[:,0]]
             LIR = np.percentile(values_nonzero.flatten(), 2)
             HIR = np.percentile(values_nonzero.flatten(), 98)
@@ -233,7 +232,7 @@ class NiftiDataset:
             # img[np.nonzero(img)] = (img[np.nonzero(img)] - LIR) / (HIR - LIR)
             img_n = (initial_img_np - LIR) / (HIR - LIR)
 
-        # # Used for debugging
+        # # Used plotting for debugging
         # fig, axs = plt.subplots(2, 2)
         # axs[0, 0].imshow(img[15])
         # axs[0, 1].imshow(img[30])
@@ -245,6 +244,7 @@ class NiftiDataset:
         # returns a masked np array
         return img_n
 
+    # function for getting the ROI filter on the fly
     def get_ROI_filter(self, img):
         if not isinstance(img, sitk.Image):
             # convert img np array back to sitk image
@@ -292,6 +292,7 @@ class NiftiDataset:
 
         return mx
 
+    # Function for applying bias correction on the fly. Advise is no to use this but to do bias correction upfront using the CPU cluster as this method is not accurate enough
     def apply_bias_correction(self, img):
         # print('working on N4')
         initial_img = img
@@ -365,36 +366,28 @@ class NiftiDataset:
 
         return corrected_image
 
+    # function for resampling on the fly. Only use this in the case that dataset itself has not been resampled
     def resample_img2(self, image, reference_img, resampling_factor, use_seg=False):
-
-        # print('checkpoint 1')
-        # print()
+        # get image variables
         img_spacing = reference_img.GetSpacing()
         img_direction = reference_img.GetDirection()
         img_origin = reference_img.GetOrigin()
         img_size = reference_img.GetSize()
         img_pixelIDValue = reference_img.GetPixelIDValue()
 
-        # print(img_spacing, img_direction, img_origin, img_size, img_pixelIDValue)
-        # print(image.shape)
-        #
-        # print('checkpoint 2')
+        # Define new size and spacing based on resampling factor
         new_img_size = tuple(int(i / resampling_factor) for i in img_size)
         new_img_spacing = [sz * spc / nsz for nsz, sz, spc in zip(new_img_size, img_size, img_spacing)]
 
-        # print('checkpoint 1')
+        # Create an image to resample to (your target image so to say) and set the size, ID value and spacing
         resample_to_this_image = sitk.Image(*new_img_size, img_pixelIDValue)
-        # resample_to_this_image.SetOrigin(img_origin)
-        # resample_to_this_image.SetDirection(img_direction)
+
         resample_to_this_image.SetSpacing(new_img_spacing)
 
-        # print('checkpoint 3')
         image_to_resample = sitk.GetImageFromArray(image)
-        # print('huh',image_to_resample.GetSize(), image.shape)
 
-        # print('checkpoint 4')
-
-        # print('resampling has started')
+        # Depending on whether we are dealing with a segmentation or an image that needs resampling we use one of the following two operations
+        # The difference is in the fact that for images we use the 3rd order spline interpolation and for segmentations we use nearest neighbor
         if not use_seg:
             resampled_img = sitk.Resample(image_to_resample, resample_to_this_image, sitk.Transform(), sitk.sitkBSplineResamplerOrder3)
         else:
@@ -402,166 +395,116 @@ class NiftiDataset:
 
         resampled_img_np = sitk.GetArrayFromImage(resampled_img)
 
-
-        # print('img::', resampled_img.GetSpacing(), resampled_img.GetSize(), resampled_img.GetOrigin(), resampled_img.GetDirection())
-        # print('seg::', resampled_seg.GetSpacing(), resampled_seg.GetSize(), resampled_seg.GetOrigin(), resampled_seg.GetDirection())
-
-        # image1_np = sitk.GetArrayFromImage(resampled_img)
-        # image2_np = sitk.GetArrayFromImage(image_original)
-
-        # print(image1_np.shape, image2_np.shape)
-
-        # fig, axs = plt.subplots(2, 1)
-        # axs[0].imshow(image1_np[65,:,:])
-        # axs[1].imshow(image[123,:,:])
-        #
-        # plt.plot()
-        # plt.show()
-
         return resampled_img_np
 
+    # function that creates a reference domain. Can be used in resampling but is not
+    # def __create_reference_domain(self, dataset, isotropic: bool = False, vx_spacing: str = 'median'):
+    #     # dataset is a dataframe with all the names of usable data
+    #     img_0 = sitk.ReadImage(dataset[dataset.columns[0]][0])
+    #     # will most likely be 3D
+    #     dimension = img_0.GetDimension()
+    #
+    #     # Physical image size corresponds to the largest physical size in the training set, or any other arbitrary size.
+    #     reference_physical_size = np.zeros(dimension)
+    #     biggest_img_size = 0
+    #     spacing_list = []
+    #     sizes_list = []
+    #
+    #     for index, subject in enumerate(dataset[dataset.columns[0]]):
+    #         img = sitk.ReadImage(subject)
+    #         reference_physical_size[:] = [(sz - 1) * spc if sz * spc > mx else mx for sz, spc, mx in
+    #                                       zip(img.GetSize(), img.GetSpacing(), reference_physical_size)]
+    #         biggest_img_size = max(img.GetSize()) if max(img.GetSize()) > biggest_img_size else biggest_img_size
+    #         spacing_list.append(img.GetSpacing())
+    #         sizes_list.append(img.GetSize())
+    #
+    #     sizes_list.sort()
+    #
+    #     spacing_list.sort()
+    #
+    #
+    #     if isotropic:
+    #         # The first possibility is that you want isotropic pixels, if so you can specify the image size for one of
+    #         # the axes and the others are determined by this choice. Below we choose to set the x axis to the biggest
+    #         # image size and the spacing accordingly.
+    #         if vx_spacing == 'median':
+    #             reference_spacing = [spacing_list[int(len(spacing_list) / 2)][0]] * dimension
+    #         elif vx_spacing == 'mean':
+    #             reference_spacing = list(map(lambda y: math.ceil(sum(y) / float(len(y))), zip(*spacing_list)))[0] * dimension
+    #         elif vx_spacing == 'min':
+    #             reference_spacing = [spacing_list[0][0]] * dimension
+    #         elif vx_spacing == 'max':
+    #             reference_spacing = [spacing_list[-1][0]] * dimension
+    #         elif vx_spacing == 'development':
+    #             # print('prev spc', spacing_list[-1][0])
+    #             multiplier = (1, 4, 4)
+    #             reference_spacing = [tuple(i * j for i, j in zip(multiplier, spacing_list[-1][0]))] * dimension
+    #             print('new spc', reference_spacing)
+    #         else:
+    #             # Just use the median spacing
+    #             reference_spacing = [spacing_list[int(len(spacing_list) / 2)][0]] * dimension
+    #         # print('ref spacing:', reference_spacing)
+    #         reference_size = [int(phys_sz / (spc) + 1) for phys_sz, spc in
+    #                           zip(reference_physical_size, reference_spacing)]
+    #         reference_size = self.adjust_reference_size(reference_size)
+    #         # print(reference_size, reference_size_x)
+    #     else:
+    #         # in the case that we do not want to use isotropic spacing we come here and set the spacing values according to the set parameters
+    #         if vx_spacing == 'median':
+    #             reference_spacing = spacing_list[int(len(spacing_list) / 2)]
+    #             reference_size = [int(phys_sz / (spc) + 1) for phys_sz, spc in
+    #                               zip(reference_physical_size, reference_spacing)]
+    #             reference_size = self.adjust_reference_size(reference_size)
+    #         elif vx_spacing == 'mean':
+    #             reference_spacing = list(map(lambda y: math.ceil(sum(y) / float(len(y))), zip(*spacing_list)))
+    #             reference_size = [int(phys_sz / (spc) + 1) for phys_sz, spc in
+    #                               zip(reference_physical_size, reference_spacing)]
+    #             reference_size = self.adjust_reference_size(reference_size)
+    #         elif vx_spacing == 'min':
+    #             reference_spacing = spacing_list[0]
+    #             reference_size = [int(phys_sz / (spc) + 1) for phys_sz, spc in
+    #                               zip(reference_physical_size, reference_spacing)]
+    #             reference_size = self.adjust_reference_size(reference_size)
+    #         elif vx_spacing == 'max':
+    #             reference_spacing = spacing_list[-1]
+    #             reference_size = [int(phys_sz / (spc) + 1) for phys_sz, spc in
+    #                               zip(reference_physical_size, reference_spacing)]
+    #             reference_size = self.adjust_reference_size(reference_size)
+    #         elif vx_spacing == 'development':
+    #             #The development spacing is used to do test runs of the code. As resampling may take some time, here we use a spacing factor of 4 to reduce the data needing resampling.
+    #             print('prev spc', spacing_list[-1])
+    #             multiplier = (4, 4, 1)
+    #             reference_spacing = tuple(i * j for i, j in zip(multiplier, spacing_list[-1]))
+    #             print('new spc', reference_spacing)
+    #
+    #             reference_size = [int(phys_sz / (spc) + 1) for phys_sz, spc in
+    #                               zip(reference_physical_size, reference_spacing)]
+    #             reference_size = self.adjust_reference_size(reference_size)
+    #
+    #         else:
+    #             # Just use the median spacing
+    #             reference_spacing = spacing_list[int(len(spacing_list) / 2)]
+    #             reference_size = [int(phys_sz / (spc) + 1) for phys_sz, spc in
+    #                               zip(reference_physical_size, reference_spacing)]
+    #             reference_size = self.adjust_reference_size(reference_size)
+    #
+    #         print('      Reference spacing will be:', reference_spacing)
+    #         print('      Reference size will be:', reference_size)
+    #
+    #     reference_image = sitk.Image(reference_size, img_0.GetPixelIDValue())
+    #     # reference_image.SetOrigin(reference_origin)
+    #     reference_image.SetSpacing(reference_spacing)
+    #     # reference_image.SetDirection(reference_direction)
+    #
+    #     # Always use the TransformContinuousIndexToPhysicalPoint to compute an indexed point's physical coordinates as
+    #     # this takes into account size, spacing and direction cosines. For the vast majority of images the direction
+    #     # cosines are the identity matrix, but when this isn't the case simply multiplying the central index by the
+    #     # spacing will not yield the correct coordinates resulting in a long debugging session.
 
-
-    def resample_img(self, image, segmentation, resampling_to, resampling_factor):
-
-        image = sitk.GetImageFromArray(image)
-        segmentation = sitk.GetImageFromArray(segmentation)
-
-        print(resampling_to, resampling_factor)
-        print(self.df[self.df.columns[0]][0])
-
-        # Ensure a reference is only created once
-        if not (self.ref_img and self.reference_center and self.dimension):
-            ref_img, reference_center, dimension = self.__create_reference_domain(self.df,
-                                                                                  isotropic=False,
-                                                                                  vx_spacing=resampling_to)
-
-        print('   Dataset will be resampled to shape:', ref_img.GetSize(), 'and spacing:', resampling_to)
-        resampled_image, resampled_segmentation = ResampleVxSpacing(ref_img, reference_center, dimension).run(image, segmentation)
-
-        # make sure that numpy array is returned
-        resampled_image = sitk.GetArrayFromImage(resampled_image)
-        resampled_segmentation = sitk.GetArrayFromImage(resampled_segmentation)
-
-        return resampled_image, resampled_segmentation
-
-    def __create_reference_domain(self, dataset, isotropic: bool = False, vx_spacing: str = 'median'):
-        # dataset is a dataframe with all the names of usable data
-        img_0 = sitk.ReadImage(dataset[dataset.columns[0]][0])
-        # will most likely be 3D
-        dimension = img_0.GetDimension()
-
-        # Physical image size corresponds to the largest physical size in the training set, or any other arbitrary size.
-        reference_physical_size = np.zeros(dimension)
-        biggest_img_size = 0
-        spacing_list = []
-        sizes_list = []
-
-        for index, subject in enumerate(dataset[dataset.columns[0]]):
-            img = sitk.ReadImage(subject)
-            reference_physical_size[:] = [(sz - 1) * spc if sz * spc > mx else mx for sz, spc, mx in
-                                          zip(img.GetSize(), img.GetSpacing(), reference_physical_size)]
-            biggest_img_size = max(img.GetSize()) if max(img.GetSize()) > biggest_img_size else biggest_img_size
-            spacing_list.append(img.GetSpacing())
-            sizes_list.append(img.GetSize())
-
-        sizes_list.sort()
-        # print('sizelist:', sizes_list)
-        # print('spacing list:', spacing_list)
-        spacing_list.sort()
-        # print('spacing list ordered:', spacing_list)
-        # print('median spacing: ', spacing_list[in  t(len(spacing_list) / 2)])
-        # Create the reference image with a zero origin, identity direction cosine matrix and dimension
-        # reference_origin = np.zeros(dimension)
-        # reference_direction = np.identity(dimension).flatten()
-
-        # TODO change voxel spacing from smallest to mean
-        # TODO implement 'smart spacing' option that minimizes overall distance to all points
-        if isotropic:
-            # The first possibility is that you want isotropic pixels, if so you can specify the image size for one of
-            # the axes and the others are determined by this choice. Below we choose to set the x axis to the biggest
-            # image size and the spacing accordingly.
-            if vx_spacing == 'median':
-                reference_spacing = [spacing_list[int(len(spacing_list) / 2)][0]] * dimension
-            elif vx_spacing == 'mean':
-                reference_spacing = list(map(lambda y: math.ceil(sum(y) / float(len(y))), zip(*spacing_list)))[0] * dimension
-            elif vx_spacing == 'min':
-                reference_spacing = [spacing_list[0][0]] * dimension
-            elif vx_spacing == 'max':
-                reference_spacing = [spacing_list[-1][0]] * dimension
-            elif vx_spacing == 'development':
-                # print('prev spc', spacing_list[-1][0])
-                multiplier = (1, 4, 4)
-                reference_spacing = [tuple(i * j for i, j in zip(multiplier, spacing_list[-1][0]))] * dimension
-                print('new spc', reference_spacing)
-            else:
-                # Just use the median spacing
-                reference_spacing = [spacing_list[int(len(spacing_list) / 2)][0]] * dimension
-            # print('ref spacing:', reference_spacing)
-            reference_size = [int(phys_sz / (spc) + 1) for phys_sz, spc in
-                              zip(reference_physical_size, reference_spacing)]
-            reference_size = self.adjust_reference_size(reference_size)
-            # print(reference_size, reference_size_x)
-        else:
-            # Select arbitrary number of pixels per dimension, smallest size that yields desired results
-            # or the required size of a pretrained network (e.g. VGG-16 224x224), transfer learning. This will
-            # often result in non-isotropic pixel spacing. Here we have chosen to use the largest img size to
-            # prevent loss of valuable information. Using this will make the image anisotropic. The effect
-            # will most likely be seen in the 3rd dimension / over the slices.
-            if vx_spacing == 'median':
-                reference_spacing = spacing_list[int(len(spacing_list) / 2)]
-                reference_size = [int(phys_sz / (spc) + 1) for phys_sz, spc in
-                                  zip(reference_physical_size, reference_spacing)]
-                reference_size = self.adjust_reference_size(reference_size)
-            elif vx_spacing == 'mean':
-                reference_spacing = list(map(lambda y: math.ceil(sum(y) / float(len(y))), zip(*spacing_list)))
-                reference_size = [int(phys_sz / (spc) + 1) for phys_sz, spc in
-                                  zip(reference_physical_size, reference_spacing)]
-                reference_size = self.adjust_reference_size(reference_size)
-            elif vx_spacing == 'min':
-                reference_spacing = spacing_list[0]
-                reference_size = [int(phys_sz / (spc) + 1) for phys_sz, spc in
-                                  zip(reference_physical_size, reference_spacing)]
-                reference_size = self.adjust_reference_size(reference_size)
-            elif vx_spacing == 'max':
-                reference_spacing = spacing_list[-1]
-                reference_size = [int(phys_sz / (spc) + 1) for phys_sz, spc in
-                                  zip(reference_physical_size, reference_spacing)]
-                reference_size = self.adjust_reference_size(reference_size)
-            elif vx_spacing == 'development':
-                print('prev spc', spacing_list[-1])
-                multiplier = (4, 4, 1)
-                reference_spacing = tuple(i * j for i, j in zip(multiplier, spacing_list[-1]))
-                print('new spc', reference_spacing)
-
-                reference_size = [int(phys_sz / (spc) + 1) for phys_sz, spc in
-                                  zip(reference_physical_size, reference_spacing)]
-                reference_size = self.adjust_reference_size(reference_size)
-
-            else:
-                # Just use the median spacing
-                reference_spacing = spacing_list[int(len(spacing_list) / 2)]
-                reference_size = [int(phys_sz / (spc) + 1) for phys_sz, spc in
-                                  zip(reference_physical_size, reference_spacing)]
-                reference_size = self.adjust_reference_size(reference_size)
-
-            print('      Reference spacing will be:', reference_spacing)
-            print('      Reference size will be:', reference_size)
-
-        reference_image = sitk.Image(reference_size, img_0.GetPixelIDValue())
-        # reference_image.SetOrigin(reference_origin)
-        reference_image.SetSpacing(reference_spacing)
-        # reference_image.SetDirection(reference_direction)
-
-        # Always use the TransformContinuousIndexToPhysicalPoint to compute an indexed point's physical coordinates as
-        # this takes into account size, spacing and direction cosines. For the vast majority of images the direction
-        # cosines are the identity matrix, but when this isn't the case simply multiplying the central index by the
-        # spacing will not yield the correct coordinates resulting in a long debugging session.
-        # TODO implement function that takes into account the direction cosine of all images.
-        reference_center = np.array(
-            reference_image.TransformContinuousIndexToPhysicalPoint(np.array(reference_image.GetSize()) / 2.0))
-
-        return reference_image, reference_center, dimension
+    #     reference_center = np.array(
+    #         reference_image.TransformContinuousIndexToPhysicalPoint(np.array(reference_image.GetSize()) / 2.0))
+    #
+    #     return reference_image, reference_center, dimension
 
     def adjust_reference_size(self, reference_size):
         adjusted_reference_size = []
